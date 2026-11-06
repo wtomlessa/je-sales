@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Johnson Electric - Acompanhamento Diário de Vendas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --je-orange: #F26522;
+      --je-orange-dark: #D64D0C;
+      --je-black: #1A1A1A;
+      --je-dark-gray: #2A2A2A;
+      --je-mid-gray: #666666;
+      --je-light-gray: #F4F5F7;
+      --je-border: #E0E0E0;
+      --bg-color: #F8F9FA;
+      --card-bg: #FFFFFF;
+      --text-main: #1A1A1A;
+      --text-muted: #666666;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 24px; min-height: 100vh; }
+    .container { max-width: 1280px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+      border-left: 5px solid var(--je-orange);
+    }
+
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #FFF;
+      border: 2px solid var(--je-black);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: -1px;
+    }
+    .logo-j { color: var(--je-black); }
+    .logo-e { color: var(--je-orange); }
+    .brand-title h1 { font-size: 1.25rem; font-weight: 700; color: var(--je-black); text-transform: uppercase; letter-spacing: 0.5px; }
+    .brand-title p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .currency-toggle {
+      display: flex;
+      background: var(--je-light-gray);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--je-border);
+    }
+    .currency-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 16px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+    .currency-btn.active { background: var(--je-orange); color: white; box-shadow: 0 2px 4px rgba(242, 101, 34, 0.3); }
+
+    .btn-action {
+      background: var(--je-black);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+    }
+    .btn-action:hover { background: var(--je-dark-gray); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--je-border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .kpi-card.main { border-top: 4px solid var(--je-orange); }
+    .kpi-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--je-black); margin-bottom: 8px; }
+    .kpi-subtext { font-size: 0.85rem; font-weight: 500; }
+    .kpi-progress { margin-top: 12px; height: 6px; background: var(--je-light-gray); border-radius: 3px; overflow: hidden; }
+    .kpi-progress-bar { height: 100%; background: var(--je-orange); border-radius: 3px; }
+
+    .dashboard-body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 992px) { .dashboard-body { grid-template-columns: 1fr; } }
+    
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--je-border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--je-black); margin-bottom: 16px; border-bottom: 2px solid var(--je-light-gray); padding-bottom: 8px; }
+
+    .table-container { overflow-x: auto; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--je-border); font-size: 0.9rem; }
+    th { background: var(--je-light-gray); font-weight: 600; color: var(--je-black); }
+    tr:hover { background: rgba(0,0,0,0.01); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    .form-group input { width: 100%; padding: 8px 12px; border: 1px solid var(--je-border); border-radius: 6px; font-size: 0.9rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-badge">
+          <span class="logo-j">J</span><span class="logo-e">E</span>
+        </div>
+        <div class="brand-title">
+          <h1>Johnson Electric</h1>
+          <p>Dashboard Diário de Vendas — Nov/26</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-action" onclick="openModal()">⚙️ Editar Dados</button>
+        <div class="currency-toggle">
+          <button class="currency-btn active" id="btn-brl" onclick="setCurrency('BRL')">BRL (R$)</button>
+          <button class="currency-btn" id="btn-usd" onclick="setCurrency('USD')">USD ($)</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi-card main">
+        <div class="kpi-label">MTD Actual Sales</div>
+        <div class="kpi-value" id="kpi-mtd-val">-</div>
+        <div class="kpi-subtext" style="color: var(--je-orange);">Realizado no mês</div>
+        <div class="kpi-progress"><div class="kpi-progress-bar" id="bar-mtd" style="width: 100%;"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Forecast Logística EC</div>
+        <div class="kpi-value" id="kpi-logistics-val">-</div>
+        <div class="kpi-subtext" id="kpi-logistics-sub">-</div>
+        <div class="kpi-progress"><div class="kpi-progress-bar" id="bar-logistics"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Budget FY26-27</div>
+        <div class="kpi-value" id="kpi-budget-val">-</div>
+        <div class="kpi-subtext" id="kpi-budget-sub">-</div>
+        <div class="kpi-progress"><div class="kpi-progress-bar" id="bar-budget"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Forecast Comercial</div>
+        <div class="kpi-value" id="kpi-comercial-val">-</div>
+        <div class="kpi-subtext" id="kpi-comercial-sub">-</div>
+        <div class="kpi-progress"><div class="kpi-progress-bar" id="bar-comercial"></div></div>
+      </div>
+    </div>
+
+    <div class="dashboard-body">
+      <div class="card">
+        <div class="card-title">Comparativo MTD vs Targets</div>
+        <div style="height: 300px;"><canvas id="chartComparison"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Simulador de Run Rate Diário</div>
+        <div class="form-group">
+          <label>Dia Útil Atual: <span id="current-day-label">3</span> / 20 dias úteis</label>
+          <input type="range" id="dayRange" min="1" max="20" value="3" oninput="updateRunRate(this.value)">
+        </div>
+        <div style="margin-top: 16px; line-height: 1.8; font-size: 0.9rem;">
+          <p><strong>Média realizada por dia útil:</strong> <span id="rr-current">-</span></p>
+          <p><strong>Meta diária restante (Budget):</strong> <span id="rr-needed" style="color: var(--je-orange); font-weight:700;">-</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tabela Resumo (Novembro/2026)</div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Linha de Projeção</th>
+              <th>Valor (BRL)</th>
+              <th>Valor (USD)</th>
+              <th>Atingimento MTD (%)</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edição -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Atualizar Dados MTD</h3>
+        <button onclick="closeModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+      <form id="editForm" onsubmit="saveData(event)">
+        <div class="form-group"><label>MTD Actual Sales (BRL k):</label><input type="number" step="0.001" id="in-mtd" required></div>
+        <div class="form-group"><label>Forecast Logística EC (BRL k):</label><input type="number" step="0.001" id="in-log" required></div>
+        <div class="form-group"><label>Budget FY26-27 (BRL k):</label><input type="number" step="0.001" id="in-bud" required></div>
+        <div class="form-group"><label>Forecast Comercial (BRL k):</label><input type="number" step="0.001" id="in-com" required></div>
+        <div class="modal-footer">
+          <button type="button" class="btn-action" style="background:#ccc; color:#000;" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-action">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let rawData = JSON.parse(localStorage.getItem('je_sales_data')) || {
+      mtd: 2.333,
+      logistics: 22.386,
+      budget: 21.024,
+      comercial: 21.629,
+      rate: 5.105 // taxa BRL/USD calculada da tabela original
+    };
+
+    let currentCurrency = 'BRL';
+    let chartInstance = null;
+
+    function formatVal(val, currency) {
+      if (currency === 'USD') {
+        const usdVal = val / rawData.rate;
+        return '$ ' + usdVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+      }
+      return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+
+    function render() {
+      const isBRL = currentCurrency === 'BRL';
+      const mtd = rawData.mtd;
+      
+      document.getElementById('kpi-mtd-val').innerText = formatVal(mtd, currentCurrency);
+      
+      const targets = [
+        { id: 'logistics', val: rawData.logistics, name: 'Forecast Logística' },
+        { id: 'budget', val: rawData.budget, name: 'Budget FY26-27' },
+        { id: 'comercial', val: rawData.comercial, name: 'Forecast Comercial' }
+      ];
+
+      targets.forEach(t => {
+        const pct = ((mtd / t.val) * 100).toFixed(1);
+        document.getElementById(`kpi-${t.id}-val`).innerText = formatVal(t.val, currentCurrency);
+        document.getElementById(`kpi-${t.id}-sub`).innerText = `${pct}% do realizado MTD`;
+        document.getElementById(`bar-${t.id}`).style.width = Math.min(pct, 100) + '%';
+      });
+
+      // Tabela
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = `
+        <tr><td><strong>MTD Actual Sales</strong></td><td>R$ ${rawData.mtd.toFixed(3)}</td><td>$ ${(rawData.mtd/rawData.rate).toFixed(3)}</td><td><strong>100%</strong></td></tr>
+        <tr><td>Forecast Logística EC</td><td>R$ ${rawData.logistics.toFixed(3)}</td><td>$ ${(rawData.logistics/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.logistics)*100).toFixed(1)}%</td></tr>
+        <tr><td>Budget FY26-27</td><td>R$ ${rawData.budget.toFixed(3)}</td><td>$ ${(rawData.budget/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.budget)*100).toFixed(1)}%</td></tr>
+        <tr><td>Forecast Comercial</td><td>R$ ${rawData.comercial.toFixed(3)}</td><td>$ ${(rawData.comercial/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.comercial)*100).toFixed(1)}%</td></tr>
+      `;
+
+      updateChart();
+      updateRunRate(document.getElementById('dayRange').value);
+    }
+
+    function setCurrency(curr) {
+      currentCurrency = curr;
+      document.getElementById('btn-brl').classList.toggle('active', curr === 'BRL');
+      document.getElementById('btn-usd').classList.toggle('active', curr === 'USD');
+      render();
+    }
+
+    function updateChart() {
+      const ctx = document.getElementById('chartComparison').getContext('2d');
+      const mult = currentCurrency === 'USD' ? (1 / rawData.rate) : 1;
+      
+      const dataVals = [
+        rawData.mtd * mult,
+        rawData.logistics * mult,
+        rawData.budget * mult,
+        rawData.comercial * mult
+      ];
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['MTD Actual', 'Forecast Logística', 'Budget FY26-27', 'Forecast Comercial'],
+          datasets: [{
+            label: `Valores em ${currentCurrency}`,
+            data: dataVals,
+            backgroundColor: ['#F26522', '#1A1A1A', '#666666', '#A6A6A6'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function updateRunRate(day) {
+      document.getElementById('current-day-label').innerText = day;
+      const mult = currentCurrency === 'USD' ? (1 / rawData.rate) : 1;
+      const currentAvg = (rawData.mtd * mult) / day;
+      const remainingDays = 20 - day;
+      const neededTotal = (rawData.budget * mult) - (rawData.mtd * mult);
+      const neededAvg = remainingDays > 0 ? neededTotal / remainingDays : 0;
+
+      document.getElementById('rr-current').innerText = formatVal(currentAvg * (currentCurrency === 'USD' ? rawData.rate : 1), currentCurrency);
+      document.getElementById('rr-needed').innerText = formatVal(Math.max(0, neededAvg) * (currentCurrency === 'USD' ? rawData.rate : 1), currentCurrency);
+    }
+
+    function openModal() {
+      document.getElementById('in-mtd').value = rawData.mtd;
+      document.getElementById('in-log').value = rawData.logistics;
+      document.getElementById('in-bud').value = rawData.budget;
+      document.getElementById('in-com').value = rawData.comercial;
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+
+    function saveData(e) {
+      e.preventDefault();
+      rawData.mtd = parseFloat(document.getElementById('in-mtd').value);
+      rawData.logistics = parseFloat(document.getElementById('in-log').value);
+      rawData.budget = parseFloat(document.getElementById('in-bud').value);
+      rawData.comercial = parseFloat(document.getElementById('in-com').value);
+      
+      localStorage.setItem('je_sales_data', JSON.stringify(rawData));
+      closeModal();
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
