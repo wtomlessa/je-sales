@@ -173,7 +173,6 @@
         </div>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn-action btn-secondary" onclick="resetData()" title="Descartar edições locais e puxar dados oficiais">🔄 Sincronizar</button>
         <button type="button" class="btn-action" onclick="openModal()">⚙️ Editar Dados</button>
         <div class="currency-toggle">
           <button type="button" class="currency-btn active" id="btn-brl" onclick="setCurrency('BRL')">BRL (R$)</button>
@@ -330,15 +329,6 @@
 
       document.getElementById('version-badge').textContent = `(${DATA_VERSION})`;
       document.getElementById('dayRange').value = appData.businessDay || 17;
-      renderDashboard();
-    }
-
-    // Botão Sincronizar: restaura instantaneamente os dados oficiais do GitHub
-    function resetData() {
-      appData = { ...OFFICIAL_DATA };
-      localStorage.setItem(STORAGE_VER_KEY, DATA_VERSION);
-      localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(appData));
-      document.getElementById('dayRange').value = appData.businessDay;
       renderDashboard();
     }
 
