@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Johnson Electric - Acompanhamento Diário de Vendas</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --je-orange: #F26522;
@@ -29,6 +29,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
       background: var(--card-bg);
       padding: 16px 24px;
       border-radius: 12px;
@@ -55,7 +57,7 @@
     .brand-title h1 { font-size: 1.25rem; font-weight: 700; color: var(--je-black); text-transform: uppercase; letter-spacing: 0.5px; }
     .brand-title p { font-size: 0.85rem; color: var(--text-muted); }
 
-    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
     .currency-toggle {
       display: flex;
       background: var(--je-light-gray);
@@ -91,6 +93,12 @@
       transition: background 0.2s ease;
     }
     .btn-action:hover { background: var(--je-dark-gray); }
+    .btn-secondary {
+      background: var(--je-light-gray);
+      color: var(--je-black);
+      border: 1px solid var(--je-border);
+    }
+    .btn-secondary:hover { background: #E5E7EB; }
 
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .kpi-card {
@@ -106,7 +114,7 @@
     .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--je-black); margin-bottom: 8px; }
     .kpi-subtext { font-size: 0.85rem; font-weight: 500; }
     .kpi-progress { margin-top: 12px; height: 6px; background: var(--je-light-gray); border-radius: 3px; overflow: hidden; }
-    .kpi-progress-bar { height: 100%; background: var(--je-orange); border-radius: 3px; }
+    .kpi-progress-bar { height: 100%; background: var(--je-orange); border-radius: 3px; transition: width 0.3s ease; }
 
     .dashboard-body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
     @media (max-width: 992px) { .dashboard-body { grid-template-columns: 1fr; } }
@@ -120,7 +128,7 @@
     }
     .card-title { font-size: 1rem; font-weight: 700; color: var(--je-black); margin-bottom: 16px; border-bottom: 2px solid var(--je-light-gray); padding-bottom: 8px; }
 
-    .table-container { overflow-x: auto; margin-bottom: 24px; }
+    .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 12px 16px; border-bottom: 1px solid var(--je-border); font-size: 0.9rem; }
     th { background: var(--je-light-gray); font-weight: 600; color: var(--je-black); }
@@ -133,6 +141,7 @@
       background: rgba(0,0,0,0.5);
       align-items: center; justify-content: center;
       z-index: 1000;
+      padding: 16px;
     }
     .modal.active { display: flex; }
     .modal-content {
@@ -140,7 +149,7 @@
       padding: 24px;
       border-radius: 12px;
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -160,14 +169,15 @@
         </div>
         <div class="brand-title">
           <h1>Johnson Electric</h1>
-          <p>Dashboard Diário de Vendas — Nov/26</p>
+          <p>Dashboard Diário de Vendas — Nov/26 <span id="version-badge" style="font-size:0.75rem; opacity:0.7;"></span></p>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn-action" onclick="openModal()">⚙️ Editar Dados</button>
+        <button type="button" class="btn-action btn-secondary" onclick="resetData()" title="Descartar edições locais e puxar dados oficiais">🔄 Sincronizar</button>
+        <button type="button" class="btn-action" onclick="openModal()">⚙️ Editar Dados</button>
         <div class="currency-toggle">
-          <button class="currency-btn active" id="btn-brl" onclick="setCurrency('BRL')">BRL (R$)</button>
-          <button class="currency-btn" id="btn-usd" onclick="setCurrency('USD')">USD ($)</button>
+          <button type="button" class="currency-btn active" id="btn-brl" onclick="setCurrency('BRL')">BRL (R$)</button>
+          <button type="button" class="currency-btn" id="btn-usd" onclick="setCurrency('USD')">USD ($)</button>
         </div>
       </div>
     </header>
@@ -207,8 +217,8 @@
       <div class="card">
         <div class="card-title">Simulador de Run Rate Diário</div>
         <div class="form-group">
-          <label>Dia Útil Atual: <span id="current-day-label">3</span> / 20 dias úteis</label>
-          <input type="range" id="dayRange" min="1" max="20" value="3" oninput="updateRunRate(this.value)">
+          <label>Dia Útil Atual: <span id="current-day-label">17</span> / 20 dias úteis</label>
+          <input type="range" id="dayRange" min="1" max="20" value="17" oninput="updateRunRate(this.value)">
         </div>
         <div style="margin-top: 16px; line-height: 1.8; font-size: 0.9rem;">
           <p><strong>Média realizada por dia útil:</strong> <span id="rr-current">-</span></p>
@@ -239,148 +249,242 @@
   <div class="modal" id="editModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Atualizar Dados MTD</h3>
-        <button onclick="closeModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+        <h3>Atualizar Dados MTD (Simulação Local)</h3>
+        <button type="button" onclick="closeModal()" style="border:none; background:none; font-size:1.4rem; cursor:pointer;">&times;</button>
       </div>
       <form id="editForm" onsubmit="saveData(event)">
-        <div class="form-group"><label>MTD Actual Sales (BRL k):</label><input type="number" step="0.001" id="in-mtd" required></div>
-        <div class="form-group"><label>Forecast Logística EC (BRL k):</label><input type="number" step="0.001" id="in-log" required></div>
-        <div class="form-group"><label>Budget FY26-27 (BRL k):</label><input type="number" step="0.001" id="in-bud" required></div>
-        <div class="form-group"><label>Forecast Comercial (BRL k):</label><input type="number" step="0.001" id="in-com" required></div>
+        <div class="form-group">
+          <label for="input-rate">Taxa de Câmbio (BRL / USD)</label>
+          <input type="number" step="0.0001" id="input-rate" required>
+        </div>
+        <div class="form-group">
+          <label for="input-mtd">MTD Actual Sales (BRL)</label>
+          <input type="number" step="0.01" id="input-mtd" required>
+        </div>
+        <div class="form-group">
+          <label for="input-logistics">Forecast Logística EC (BRL)</label>
+          <input type="number" step="0.01" id="input-logistics" required>
+        </div>
+        <div class="form-group">
+          <label for="input-budget">Budget FY26-27 (BRL)</label>
+          <input type="number" step="0.01" id="input-budget" required>
+        </div>
+        <div class="form-group">
+          <label for="input-comercial">Forecast Comercial (BRL)</label>
+          <input type="number" step="0.01" id="input-comercial" required>
+        </div>
+        <div class="form-group">
+          <label for="input-day">Dia Útil Atual (1 a 20)</label>
+          <input type="number" min="1" max="20" id="input-day" required>
+        </div>
         <div class="modal-footer">
-          <button type="button" class="btn-action" style="background:#ccc; color:#000;" onclick="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-action">Salvar Alterações</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-action">Salvar Simulação</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    let rawData = JSON.parse(localStorage.getItem('je_sales_data')) || {
-      mtd: 2.333,
-      logistics: 22.386,
-      budget: 21.024,
-      comercial: 21.629,
-      rate: 5.105 // taxa BRL/USD calculada da tabela original
+    // =========================================================================
+    // CONTROLE DE VERSÃO AUTOMÁTICO (DATA_VERSION)
+    // Sempre que atualizar os números oficiais abaixo no GitHub, mude esta string:
+    // =========================================================================
+    const DATA_VERSION = '2026-11-25-v1';
+
+    // DADOS OFICIAIS (Valores em BRL base — ajuste conforme o fechamento diário)
+    const OFFICIAL_DATA = {
+      exchangeRate: 5.7500,
+      mtdActual: 14500000,
+      forecastLogistics: 17200000,
+      budget: 18000000,
+      forecastComercial: 17500000,
+      businessDay: 17,
+      totalBusinessDays: 20
     };
 
-    let currentCurrency = 'BRL';
-    let chartInstance = null;
+    const STORAGE_DATA_KEY = 'je_sales_dashboard_data';
+    const STORAGE_VER_KEY = 'je_sales_dashboard_version';
 
-    function formatVal(val, currency) {
-      if (currency === 'USD') {
-        const usdVal = val / rawData.rate;
-        return '$ ' + usdVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    let currentCurrency = 'BRL';
+    let appData = {};
+    let salesChart = null;
+
+    // Inicializa dados verificando se a versão do GitHub mudou
+    function initData() {
+      const savedVersion = localStorage.getItem(STORAGE_VER_KEY);
+      const savedData = localStorage.getItem(STORAGE_DATA_KEY);
+
+      if (savedVersion !== DATA_VERSION || !savedData) {
+        // Versão nova no GitHub ou primeiro acesso: limpa cache antigo e usa o oficial
+        appData = { ...OFFICIAL_DATA };
+        localStorage.setItem(STORAGE_VER_KEY, DATA_VERSION);
+        localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(appData));
+      } else {
+        try {
+          appData = JSON.parse(savedData);
+        } catch (e) {
+          appData = { ...OFFICIAL_DATA };
+        }
       }
-      return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+      document.getElementById('version-badge').textContent = `(${DATA_VERSION})`;
+      document.getElementById('dayRange').value = appData.businessDay || 17;
+      renderDashboard();
     }
 
-    function render() {
-      const isBRL = currentCurrency === 'BRL';
-      const mtd = rawData.mtd;
-      
-      document.getElementById('kpi-mtd-val').innerText = formatVal(mtd, currentCurrency);
-      
-      const targets = [
-        { id: 'logistics', val: rawData.logistics, name: 'Forecast Logística' },
-        { id: 'budget', val: rawData.budget, name: 'Budget FY26-27' },
-        { id: 'comercial', val: rawData.comercial, name: 'Forecast Comercial' }
-      ];
+    // Botão Sincronizar: restaura instantaneamente os dados oficiais do GitHub
+    function resetData() {
+      appData = { ...OFFICIAL_DATA };
+      localStorage.setItem(STORAGE_VER_KEY, DATA_VERSION);
+      localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(appData));
+      document.getElementById('dayRange').value = appData.businessDay;
+      renderDashboard();
+    }
 
-      targets.forEach(t => {
-        const pct = ((mtd / t.val) * 100).toFixed(1);
-        document.getElementById(`kpi-${t.id}-val`).innerText = formatVal(t.val, currentCurrency);
-        document.getElementById(`kpi-${t.id}-sub`).innerText = `${pct}% do realizado MTD`;
-        document.getElementById(`bar-${t.id}`).style.width = Math.min(pct, 100) + '%';
-      });
-
-      // Tabela
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `
-        <tr><td><strong>MTD Actual Sales</strong></td><td>R$ ${rawData.mtd.toFixed(3)}</td><td>$ ${(rawData.mtd/rawData.rate).toFixed(3)}</td><td><strong>100%</strong></td></tr>
-        <tr><td>Forecast Logística EC</td><td>R$ ${rawData.logistics.toFixed(3)}</td><td>$ ${(rawData.logistics/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.logistics)*100).toFixed(1)}%</td></tr>
-        <tr><td>Budget FY26-27</td><td>R$ ${rawData.budget.toFixed(3)}</td><td>$ ${(rawData.budget/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.budget)*100).toFixed(1)}%</td></tr>
-        <tr><td>Forecast Comercial</td><td>R$ ${rawData.comercial.toFixed(3)}</td><td>$ ${(rawData.comercial/rawData.rate).toFixed(3)}</td><td>${((mtd/rawData.comercial)*100).toFixed(1)}%</td></tr>
-      `;
-
-      updateChart();
-      updateRunRate(document.getElementById('dayRange').value);
+    function formatMoney(valueBRL, currency = currentCurrency) {
+      const val = currency === 'USD' ? valueBRL / appData.exchangeRate : valueBRL;
+      return new Intl.NumberFormat(currency === 'BRL' ? 'pt-BR' : 'en-US', {
+        style: 'currency',
+        currency: currency,
+        maximumFractionDigits: 0
+      }).format(val);
     }
 
     function setCurrency(curr) {
       currentCurrency = curr;
       document.getElementById('btn-brl').classList.toggle('active', curr === 'BRL');
       document.getElementById('btn-usd').classList.toggle('active', curr === 'USD');
-      render();
+      renderDashboard();
     }
 
-    function updateChart() {
-      const ctx = document.getElementById('chartComparison').getContext('2d');
-      const mult = currentCurrency === 'USD' ? (1 / rawData.rate) : 1;
-      
-      const dataVals = [
-        rawData.mtd * mult,
-        rawData.logistics * mult,
-        rawData.budget * mult,
-        rawData.comercial * mult
+    function updateRunRate(day) {
+      appData.businessDay = Number(day);
+      document.getElementById('current-day-label').textContent = appData.businessDay;
+
+      const avgCurrent = appData.mtdActual / appData.businessDay;
+      const remainingDays = appData.totalBusinessDays - appData.businessDay;
+      const remainingGap = Math.max(0, appData.budget - appData.mtdActual);
+      const neededDaily = remainingDays > 0 ? remainingGap / remainingDays : 0;
+
+      document.getElementById('rr-current').textContent = formatMoney(avgCurrent) + ' / dia';
+      document.getElementById('rr-needed').textContent = remainingDays > 0
+        ? formatMoney(neededDaily) + ` / dia (${remainingDays} dias rest.)`
+        : 'Mês encerrado';
+    }
+
+    function renderDashboard() {
+      const pctLogistics = appData.forecastLogistics > 0 ? (appData.mtdActual / appData.forecastLogistics) * 100 : 0;
+      const pctBudget = appData.budget > 0 ? (appData.mtdActual / appData.budget) * 100 : 0;
+      const pctComercial = appData.forecastComercial > 0 ? (appData.mtdActual / appData.forecastComercial) * 100 : 0;
+
+      document.getElementById('kpi-mtd-val').textContent = formatMoney(appData.mtdActual);
+
+      document.getElementById('kpi-logistics-val').textContent = formatMoney(appData.forecastLogistics);
+      document.getElementById('kpi-logistics-sub').textContent = `${pctLogistics.toFixed(1)}% atingido`;
+      document.getElementById('bar-logistics').style.width = `${Math.min(pctLogistics, 100)}%`;
+
+      document.getElementById('kpi-budget-val').textContent = formatMoney(appData.budget);
+      document.getElementById('kpi-budget-sub').textContent = `${pctBudget.toFixed(1)}% atingido`;
+      document.getElementById('bar-budget').style.width = `${Math.min(pctBudget, 100)}%`;
+
+      document.getElementById('kpi-comercial-val').textContent = formatMoney(appData.forecastComercial);
+      document.getElementById('kpi-comercial-sub').textContent = `${pctComercial.toFixed(1)}% atingido`;
+      document.getElementById('bar-comercial').style.width = `${Math.min(pctComercial, 100)}%`;
+
+      updateRunRate(appData.businessDay);
+      renderTable(pctLogistics, pctBudget, pctComercial);
+      renderChart();
+    }
+
+    function renderTable(pctLogistics, pctBudget, pctComercial) {
+      const rows = [
+        { name: 'MTD Actual Sales', val: appData.mtdActual, pct: '100.0%' },
+        { name: 'Forecast Logística EC', val: appData.forecastLogistics, pct: pctLogistics.toFixed(1) + '%' },
+        { name: 'Budget FY26-27', val: appData.budget, pct: pctBudget.toFixed(1) + '%' },
+        { name: 'Forecast Comercial', val: appData.forecastComercial, pct: pctComercial.toFixed(1) + '%' }
       ];
 
-      if (chartInstance) chartInstance.destroy();
+      document.getElementById('table-body').innerHTML = rows.map(r => `
+        <tr>
+          <td><strong>${r.name}</strong></td>
+          <td>${formatMoney(r.val, 'BRL')}</td>
+          <td>${formatMoney(r.val, 'USD')}</td>
+          <td>${r.pct}</td>
+        </tr>
+      `).join('');
+    }
 
-      chartInstance = new Chart(ctx, {
+    function renderChart() {
+      const ctx = document.getElementById('chartComparison').getContext('2d');
+      const factor = currentCurrency === 'USD' ? (1 / appData.exchangeRate) : 1;
+      const values = [
+        appData.mtdActual * factor,
+        appData.forecastLogistics * factor,
+        appData.budget * factor,
+        appData.forecastComercial * factor
+      ];
+
+      if (salesChart) salesChart.destroy();
+
+      salesChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: ['MTD Actual', 'Forecast Logística', 'Budget FY26-27', 'Forecast Comercial'],
           datasets: [{
-            label: `Valores em ${currentCurrency}`,
-            data: dataVals,
-            backgroundColor: ['#F26522', '#1A1A1A', '#666666', '#A6A6A6'],
+            label: `Vendas (${currentCurrency})`,
+            data: values,
+            backgroundColor: ['#F26522', '#2A2A2A', '#666666', '#999999'],
             borderRadius: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (val) => (val / 1000000).toFixed(1) + 'M'
+              }
+            }
+          }
         }
       });
     }
 
-    function updateRunRate(day) {
-      document.getElementById('current-day-label').innerText = day;
-      const mult = currentCurrency === 'USD' ? (1 / rawData.rate) : 1;
-      const currentAvg = (rawData.mtd * mult) / day;
-      const remainingDays = 20 - day;
-      const neededTotal = (rawData.budget * mult) - (rawData.mtd * mult);
-      const neededAvg = remainingDays > 0 ? neededTotal / remainingDays : 0;
-
-      document.getElementById('rr-current').innerText = formatVal(currentAvg * (currentCurrency === 'USD' ? rawData.rate : 1), currentCurrency);
-      document.getElementById('rr-needed').innerText = formatVal(Math.max(0, neededAvg) * (currentCurrency === 'USD' ? rawData.rate : 1), currentCurrency);
-    }
-
+    // Modal de Edição
     function openModal() {
-      document.getElementById('in-mtd').value = rawData.mtd;
-      document.getElementById('in-log').value = rawData.logistics;
-      document.getElementById('in-bud').value = rawData.budget;
-      document.getElementById('in-com').value = rawData.comercial;
+      document.getElementById('input-rate').value = appData.exchangeRate;
+      document.getElementById('input-mtd').value = appData.mtdActual;
+      document.getElementById('input-logistics').value = appData.forecastLogistics;
+      document.getElementById('input-budget').value = appData.budget;
+      document.getElementById('input-comercial').value = appData.forecastComercial;
+      document.getElementById('input-day').value = appData.businessDay;
       document.getElementById('editModal').classList.add('active');
     }
 
-    function closeModal() { document.getElementById('editModal').classList.remove('active'); }
-
-    function saveData(e) {
-      e.preventDefault();
-      rawData.mtd = parseFloat(document.getElementById('in-mtd').value);
-      rawData.logistics = parseFloat(document.getElementById('in-log').value);
-      rawData.budget = parseFloat(document.getElementById('in-bud').value);
-      rawData.comercial = parseFloat(document.getElementById('in-com').value);
-      
-      localStorage.setItem('je_sales_data', JSON.stringify(rawData));
-      closeModal();
-      render();
+    function closeModal() {
+      document.getElementById('editModal').classList.remove('active');
     }
 
-    render();
+    function saveData(event) {
+      event.preventDefault();
+      appData.exchangeRate = parseFloat(document.getElementById('input-rate').value) || 5.75;
+      appData.mtdActual = parseFloat(document.getElementById('input-mtd').value) || 0;
+      appData.forecastLogistics = parseFloat(document.getElementById('input-logistics').value) || 0;
+      appData.budget = parseFloat(document.getElementById('input-budget').value) || 0;
+      appData.forecastComercial = parseFloat(document.getElementById('input-comercial').value) || 0;
+      appData.businessDay = parseInt(document.getElementById('input-day').value, 10) || 1;
+
+      localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(appData));
+      document.getElementById('dayRange').value = appData.businessDay;
+      closeModal();
+      renderDashboard();
+    }
+
+    window.addEventListener('DOMContentLoaded', initData);
   </script>
 </body>
 </html>
